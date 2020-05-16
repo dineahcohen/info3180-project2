@@ -77,7 +77,6 @@ def index(path):
 #api route to allow a user to register for the application
 @app.route("/api/users/register", methods=["POST"])
 def register():
-    form = RegisterForm(request.body)
     if request.method == "POST" and form.validate_on_submit() == True:
         username = form.username.data
         password = form.password.data
