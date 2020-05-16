@@ -113,7 +113,7 @@ def register():
 #api route to allow the user to login into their profile on the application
 @app.route("/api/auth/login", methods=["POST"])
 def login():
-    form = LoginForm(request.body)
+    form = LoginForm()
     if request.method == "POST" and form.validate_on_submit() == True:
         username = form.username.data
         password = form.password.data
