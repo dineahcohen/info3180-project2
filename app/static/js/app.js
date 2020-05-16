@@ -81,47 +81,48 @@ const Register = Vue.component('register',{
       <div class="form-container">
         <div class="form-container">
             <form @submit.prevent="upload" id="uploadForm" class = "register-form border-gray box-shadow" action ='' enctype= "multipart/form-data">
+              <input type="hidden" name="csrf_token" :value="csrf"/>
               <label class = "form-control-label">
               Username
               </label>
-              <input type="text" class = "form-control"></input>
+              <input type="text" name="username" class = "form-control"></input>
 
               <label class = "form-control-label">
               Password
               </label>
-              <input type="password" class = "form-control"></input>
+              <input type="password" name="password" class = "form-control"></input>
 
               <label class = "form-control-label">
               Firstname
               </label>
-              <input type="text" class = "form-control"></input>
+              <input type="text" name="firstname" class = "form-control"></input>
 
               <label class = "form-control-label">
               Lastname
               </label>
-              <input type="text" class = "form-control"></input>
+              <input type="text" name="lastname" class = "form-control"></input>
 
               <label class = "form-control-label">
               Email
               </label>
-              <input type="text" class = "form-control"></input>
+              <input type="text" name="email" class = "form-control"></input>
 
               <label class = "form-control-label">
               Location
               </label>
-              <input type="text" class = "form-control"></input>
+              <input type="text" name="location" class = "form-control"></input>
 
               <label class = "form-control-label">
               Biography
               </label>
-              <textarea rows="3" cols = "10" class = "form-control"></textarea>
+              <textarea name="biography" rows="3" cols = "10" class = "form-control"></textarea>
 
               <label class="form-control-label">
               Photo
               </label>
-              <input type="file"></input>
+              <input type="file" name="photo"></input>
 
-              <input type="submit" class="btn btn-success form-control margin-top-30" value="Register"></input>
+              <button type="submit" name="register" class="btn btn-success form-control margin-top-30">Register</button>
 
             </form>
         </div>
@@ -133,7 +134,7 @@ const Register = Vue.component('register',{
   `,
   data: function(){
     return {
-      //csrf: token
+      csrf: token
     }
   },
 
@@ -189,12 +190,12 @@ const Login = Vue.component('login',{
               <label class = "form-control-label">
               Username
               </label>
-              <input type="text" class = "form-control"></input>
+              <input type="text" name= "username"class = "form-control"></input>
 
               <label class = "form-control-label">
               Password
               </label>
-              <input type="password" class = "form-control"></input>
+              <input type="password" name="password" class = "form-control"></input>
 
               <input type="submit" class="btn btn-success form-control margin-top-30" value="Login"></input>
 
@@ -293,12 +294,14 @@ const Explore = Vue.component('explore',{
     }
   },
   created: function(){
-    let self = this;
-    fetch('/api/posts',{
-      'headers':{
-        'Authorization': 'Bearer '
-      }
-    })
+  },
+
+  methods:{
+    getPosts: function(){
+      fetch('/api/posts',{
+
+      })
+    }
   }
 
 });

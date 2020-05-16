@@ -16,21 +16,21 @@ class Users(db.Model):
     biography = db.Column(db.String(1000), nullable=False)
     profile_photo = db.Column(db.String(200), nullable=False)
     joined_on = db.Column(db.DateTime, nullable=False, default=datetime.now())
-    
+
     #relationships between user, posts and followers
     posts= db.relationship('Posts', backref='Users', passive_deletes=True, lazy=True)
     likes= db.relationship('Likes', backref='Users', passive_deletes= True, lazy= True)
     followers= db.relationship('Follows', backref= 'Users', passive_deletes= True, lazy= True)
 
-    def __init__(self, username, password, firstname, last_name, email, location, biography, profile_photo):
+    def __init__(self, username, password, firstname, lastname, email, location, biography, profile_photo):
         self.username= username
-        self.password= generate_password_hash(password, method='dctsa1:jws246')
-        self.firstname= firstname
-        self.lastname= lastname
+        self.password= generate_password_hash(password, method='pbkdf2:sha256')
+        self.first_name= firstname
+        self.last_name= lastname
         self.email= email
         self.location= location
         self.biography= biography
-        self.profile_photo= profile_photo       
+        self.profile_photo= profile_photo
 
 
     def is_authenticated(self):

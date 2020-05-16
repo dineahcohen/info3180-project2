@@ -77,7 +77,9 @@ def index(path):
 #api route to allow a user to register for the application
 @app.route("/api/users/register", methods=["POST"])
 def register():
-    form = RegisterForm()
+    form = RegisterForm(request.form)
+    photo = request.files["photo"]
+    form.photo.data = photo
     if request.method == "POST" and form.validate_on_submit() == True:
         username = form.username.data
         password = form.password.data
@@ -114,7 +116,8 @@ def register():
 #api route to allow the user to login into their profile on the application
 @app.route("/api/auth/login", methods=["POST"])
 def login():
-    form = LoginForm()
+    form = LoginForm(request.form)
+    print(form.data)
     if request.method == "POST" and form.validate_on_submit() == True:
         username = form.username.data
         password = form.password.data
