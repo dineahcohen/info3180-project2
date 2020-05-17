@@ -231,6 +231,8 @@ const Login = Vue.component('login',{
         })
         .then(function(jsonResponse){
           console.log(jsonResponse);
+          let jwt_token = jsonResponse.token;
+          localStorage.setItem('jwt_token',jwt_token);
         })
         .catch(function(error){
           console.log(error)
@@ -246,6 +248,40 @@ const Logout = Vue.component('logout',{
   `,
   data: function (){
     return {}
+  },
+  methods:{
+    logout: function(){
+      fetch('/api/auth/logout',{
+        headers:{
+          'Authorization' : 'Bearer '+ localStorage.getItem['jwt_token']
+        }
+      })
+      .then(function(response){
+        return response.json();
+      })
+      .then(function(jsonResponse){
+        console.log(jsonResponse);
+      })
+      .catch(function(error){
+        console.log(error);
+      });
+    }
+  },
+  created: function(){
+    fetch('/api/auth/logout',{
+      headers:{
+        'Authorization' : 'Bearer '+ localStorage.getItem['jwt_token']
+      }
+    })
+    .then(function(response){
+      return response.json();
+    })
+    .then(function(jsonResponse){
+      console.log(jsonResponse);
+    })
+    .catch(function(error){
+      console.log(error);
+    });
   }
 });
 
