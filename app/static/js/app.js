@@ -308,7 +308,7 @@ const Explore = Vue.component('explore',{
             </div>
 
             <div class="post-username">
-              <h5>{{ post.user }}</h5>
+              <router-link to="/users/{user_id}" tag="a">{{ post.user }}</router-link>
             </div>
 
           </div>
