@@ -8,7 +8,7 @@ This file creates your application.
 import os
 import datetime
 from app import app, db, login_manager, csrf
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, g
 from flask_login import login_user, logout_user, current_user, login_required
 from app.forms import LoginForm, RegisterForm,  PostsForm
 from app.models import Users, Likes, Follows, Posts
@@ -147,6 +147,7 @@ def login():
 
 #api route to allow the user to logout
 @app.route("/api/auth/logout", methods=["GET"])
+@requires_auth
 def logout():
     logout_user()
 
@@ -186,7 +187,9 @@ def allPosts():
 
             likes = [like.user_id for like in post.likes]
             isLiked = current_user.id in likes
-            p = {"id": post.id, "user_id": post.user_id, "photo": os.path.join(app.config['GET_FILE'], post.photo), "caption": post.caption, "created_on": post.created_on.strftime("%d %b %Y"), "likes": len(post.likes), "isLiked": isLiked}
+            username = db.session.query(Users).filter_by(id=post.user_id).first().username
+            profile_picture = db.session.query(Users).filter_by(id=post.user_id).first().profile_photo
+            p = {"id": post.id, "user": username,"user_id": post.user_id, "profile_picture": os.path.join(app.config['GET_FILE'], profile_picture), "photo": os.path.join(app.config['GET_FILE'], post.photo), "caption": post.caption, "created_on": post.created_on.strftime("%d %b %Y"), "likes": len(post.likes), "isLiked": isLiked}
             posts.append(p)
         return jsonify(posts=posts), 201
     except Exception as e:
@@ -225,7 +228,7 @@ def userPosts(user_id):
 
             posts = []
             for post in userPosts:
-                p = {"id": post.id, "user_id": post.user_id, "photo": os.path.join(app.config['GET_FILE'], post.photo), "description": post.caption, "created_on": post.created_on.strftime("%d %b %Y")}
+                p = {"id": post.id, "user_id": post.user_id,"photo": os.path.join(app.config['GET_FILE'], post.photo), "description": post.caption, "created_on": post.created_on.strftime("%d %b %Y")}
                 posts.append(p)
 
             return jsonify(posts=posts)
@@ -301,6 +304,10 @@ def assignPath(upload):
 @login_manager.user_loader
 def load_user(user_id):
     return Users.query.get(user_id)
+
+@login_manager.unauthorized_handler
+def unauthorized_handler():
+    return render_template("/")
 
 
 ###

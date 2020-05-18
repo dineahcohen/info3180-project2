@@ -102,7 +102,12 @@ body {
 .post-container{
   display: flex;
   justify-content: center;
-  align-items: center;
+}
+
+.button-post{
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .posts{
@@ -110,22 +115,58 @@ body {
   flex-direction: column;
   background-color: white;
   width: 70%;
+  margin-bottom: 70px;
 }
 
 .post-foot{
   display: flex;
   justify-content: space-between;
-  padding: 5px 5px 5px 5px;
+  padding: 10px 10px 10px 10px;
+}
+
+.likes{
+  display: flex;;
+}
+
+.likes img{
+  height: 1.5em;
+  width: 1.5em;
+  margin-right: 5px;
+}
+
+
+.post-image img{
+  width: 100%;
 }
 
 .post-head{
   display: flex;
-  padding: 5px 5px 5px 5px;
+  padding: 10px 10px 10px 10px;
+  align-items: center;
+}
+
+.post-profile-picture{
+  border-radius: 50%;
+  width: 2em;
+  height: 2em;
+  margin-right: 10px;
+}
+
+.post-profile-picture img{
+  object-fit: cover;
+  border-radius: 50%;
+  width: inherit;
+  height: inherit;
+}
+
+.post-username{
+  display: flex;
+  padding-top: 0.5em;
 }
 
 .post-caption{
   display: flex;
-  padding: 5px 5px 5px 5px;
+  padding: 10px 10px 10px 10px;
 }
 
 .profile-conatiner{

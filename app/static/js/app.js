@@ -231,8 +231,14 @@ const Login = Vue.component('login',{
         })
         .then(function(jsonResponse){
           console.log(jsonResponse);
-          let jwt_token = jsonResponse.token;
-          localStorage.setItem('jwt_token',jwt_token);
+          if("token" in jsonResponse){
+            let jwt_token = jsonResponse.token;
+            let user_id = jsonResponse.user_id;
+            sessionStorage.setItem('jwt_token',jwt_token);
+            sessionStorage.setItem('user_id',user_id);
+            router.push("/explore");
+          }
+          //Add else here for when login fails
         })
         .catch(function(error){
           console.log(error)
@@ -253,7 +259,7 @@ const Logout = Vue.component('logout',{
     logout: function(){
       fetch('/api/auth/logout',{
         headers:{
-          'Authorization' : 'Bearer '+ localStorage.getItem['jwt_token']
+          'Authorization' : 'Bearer '+ sessionStorage.getItem('jwt_token')
         }
       })
       .then(function(response){
@@ -270,7 +276,7 @@ const Logout = Vue.component('logout',{
   created: function(){
     fetch('/api/auth/logout',{
       headers:{
-        'Authorization' : 'Bearer '+ localStorage.getItem['jwt_token']
+        'Authorization' : 'Bearer '+ sessionStorage.getItem('jwt_token')
       }
     })
     .then(function(response){
@@ -278,6 +284,8 @@ const Logout = Vue.component('logout',{
     })
     .then(function(jsonResponse){
       console.log(jsonResponse);
+      sessionStorage.clear();
+      router.push('/login');
     })
     .catch(function(error){
       console.log(error);
@@ -291,27 +299,36 @@ const Explore = Vue.component('explore',{
 
       <div class="flex-container flex-column width70">
 
-        <div class="posts border-gray box-shadow">
+        <div v-for="post in posts" class="posts border-gray box-shadow">
 
           <div class="post-head">
-            <h4>something</h4>
+
+            <div class="post-profile-picture">
+              <img v-bind:src="post.profile_picture" alt=""></img>
+            </div>
+
+            <div class="post-username">
+              <h5>{{ post.user }}</h5>
+            </div>
+
           </div>
 
           <div class="post-image">
-            <img src="#" alt=""></img>
+            <img v-bind:src="post.photo" alt=""></img>
           </div>
 
           <div class="post-caption">
-            <p>some caption</p>
+            <p>{{ post.caption }}</p>
           </div>
 
           <div class="post-foot">
             <div class="likes">
-              <p>10likes</p>
+              <img src="/static/assets/not-liked.png" alt="heart"></img>
+              <p>{{ post.likes }} Likes</p>
             </div>
 
             <div class="date">
-              <p>date</p>
+              <p>{{ post.created_on }}</p>
             </div>
 
           </div>
@@ -320,7 +337,9 @@ const Explore = Vue.component('explore',{
 
       </div>
 
-      <router-link to="/posts/new" type="button" tag="button" class="btn btn-primary">New Post</router-link>
+      <div class="button-post">
+        <router-link to="/posts/new" type="button" tag="button" class="btn btn-primary">New Post</router-link>
+      </div>
     </div>
   `,
   data: function (){
@@ -330,14 +349,24 @@ const Explore = Vue.component('explore',{
     }
   },
   created: function(){
-  },
-
-  methods:{
-    getPosts: function(){
-      fetch('/api/posts',{
-
-      })
-    }
+    let self = this
+    fetch('/api/posts',{
+      headers:{
+        'Authorization' : 'Bearer '+ sessionStorage.getItem('jwt_token')
+      }
+    })
+    .then(function(response){
+      return response.json();
+    })
+    .then(function(jsonResponse){
+      console.log(jsonResponse.posts[0]);
+      if("posts" in jsonResponse){
+        self.posts = jsonResponse.posts;
+      }
+    })
+    .catch(function(error){
+      console.log(error);
+    });
   }
 
 });
@@ -404,18 +433,18 @@ const Post = Vue.component('post',{
       <!--Form-->
       <div class="form-container">
         <div class="form-container">
-            <form class = "register-form border-gray box-shadow" action ='' method = "POST" enctype= "multipart/form-data">
+            <form @submit.prevent="makePost" id="postForm" class = "register-form border-gray box-shadow" action ='' method = "POST" enctype= "multipart/form-data">
               <label class="form-control-label">
               Photo
               </label>
-              <input type="file"></input>
+              <input name="photo" type="file"></input>
 
               <label class = "form-control-label">
               Caption
               </label>
-              <textarea rows="3" cols = "10" class = "form-control"></textarea>
+              <textarea name="caption" rows="3" cols = "10" class = "form-control"></textarea>
 
-              <input type="submit" class="btn btn-success form-control margin-top-30" value="Submit"></input>
+              <button type="submit" name="submit" class="btn btn-success form-control margin-top-30">Submit</button>
 
             </form>
         </div>
@@ -426,8 +455,38 @@ const Post = Vue.component('post',{
   </div>
   `,
   data: function (){
-    return {}
-  }
+    return {
+
+    }
+  },
+  methods:{
+    makePost: function(){
+      let form = document.getElementById('postForm');
+      let form_data = new FormData(form);
+
+      fetch('/api/users/'+sessionStorage.getItem('user_id')+'/posts',{
+        method: 'POST',
+        body: form_data,
+        headers: {
+          'X-CSRFToken': token,
+          'Authorization': 'Bearer '+ sessionStorage.getItem('jwt_token')
+        },
+        credentials: 'same-origin'
+      })
+      .then(function(response){
+        return response.json();
+      })
+      .then(function(jsonResponse){
+        console.log(jsonResponse);
+        if("message" in jsonResponse){
+          router.push('/explore')
+        }
+      })
+      .catch(function(error){
+        console.log(error);
+      });
+    }
+  },
 });
 
 
