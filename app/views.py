@@ -164,7 +164,7 @@ def userDetails(user_id):
         user = db.session.query(Users).filter_by(id=user_id).first()
         isFollowing = current_user.id in [ follower.follower_id for follower in user.followers] #checks if the current user if following this user
 
-        current = {"id": user.id, "username": user.username, "firstname": user.firstname, "lastname": user.lastname, "email": user.email, "location": user.location, "biography": user.biography,
+        current = {"id": user.id, "username": user.username, "firstname": user.first_name, "lastname": user.last_name, "email": user.email, "location": user.location, "biography": user.biography,
         "profile_photo": os.path.join(app.config['GET_FILE'], user.profile_photo), "joined": user.joined_on.strftime("%b %Y"), "isFollowing": isFollowing, "posts": []}
 
         return jsonify(user=current)
@@ -226,6 +226,7 @@ def userPosts(user_id):
             #Gets the current user to add/display posts to
             userPosts = db.session.query(Posts).filter_by(user_id=user_id).all()
 
+
             posts = []
             for post in userPosts:
                 p = {"id": post.id, "user_id": post.user_id,"photo": os.path.join(app.config['GET_FILE'], post.photo), "description": post.caption, "created_on": post.created_on.strftime("%d %b %Y")}
@@ -248,6 +249,7 @@ def userPosts(user_id):
 @app.route("/api/users/<user_id>/follow", methods=["POST", "GET"])
 @requires_auth
 def following(user_id):
+    print("here")
     if request.method == "POST":
         try:
             id = current_user.id

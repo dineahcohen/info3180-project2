@@ -6,6 +6,10 @@ body {
   margin-top: 30px;
 }
 
+.text-align-center{
+  text-align: center;
+}
+
 .padding-right-30px{
   padding-right: 30px;
 }
@@ -40,6 +44,10 @@ body {
 
 .justify-space-around{
   justify-content: space-around;
+}
+
+.justify-space-between{
+  justify-content: space-between;
 }
 
 .border-bottom{
@@ -185,13 +193,48 @@ body {
   display: flex;
   flex-direction: column;
   flex-grow: 2;
+  padding: 20px 20px 20px 20px;
+}
 
+.profile-photo{
+  width: 20%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 20px 20px 20px;
+}
+
+.profile-photo img{
+  width: 100%;
 }
 
 .follow-container{
   display: flex;
   flex-direction: column;
   justify-content: space-around;
+  padding: 20px 20px 20px 20px;
+  width: 30%;
+}
+
+.photos-container{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  column-gap: 1em;
+  row-gap: 1em;
+  padding-top: 30px;
+
+}
+
+.profile-post-photos{
+  height: 359px;
+  width: 359px;
+}
+
+.profile-post-photos img{
+  object-fit: cover;
+  width: inherit;
+  height: inherit;
+
 }
 
 .home-img{

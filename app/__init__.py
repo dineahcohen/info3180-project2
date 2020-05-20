@@ -8,7 +8,7 @@ app.config['SECRET_KEY'] = "$up3rDup3R3K3Y"
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://shaunjennings:@localhost/project2"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True # added just to suppress a warning
 app.config['UPLOAD_FOLDER'] = './app/static/uploads'
-app.config['GET_FILE'] = './static/uploads'
+app.config['GET_FILE'] = '/static/uploads'
 
 db = SQLAlchemy(app)
 csrf = CSRFProtect(app)

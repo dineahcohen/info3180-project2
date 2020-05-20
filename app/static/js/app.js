@@ -18,7 +18,7 @@ Vue.component('app-header',{
                     <router-link to="/explore" class="nav-link">Explore</router-link>
                   </li>
                   <li class="nav-item active">
-                    <router-link to="/users/{user_id}" class="nav-link">My Profile</router-link>
+                      <a v-on:click="updateUser" href="#" class="nav-link">My Profile</a>
                   </li>
                   <li class="nav-item active">
                     <router-link to="/logout" class="nav-link">Logout</router-link>
@@ -29,7 +29,16 @@ Vue.component('app-header',{
       </header>
   `,
   data: function() {
-    return {};
+    return {
+      id: 0
+    };
+  },
+  created:function(){
+  },
+  methods:{
+    updateUser: function(){
+      return router.push('/users/'+sessionStorage.getItem('user_id'));
+    }
   }
 });
 
@@ -308,7 +317,7 @@ const Explore = Vue.component('explore',{
             </div>
 
             <div class="post-username">
-              <router-link to="/users/{user_id}" tag="a">{{ post.user }}</router-link>
+              <router-link v-bind:to="{ name: 'ViewUser', params: { user_id:post.user_id } }" tag="a">{{ post.user }}</router-link>
             </div>
 
           </div>
@@ -351,6 +360,7 @@ const Explore = Vue.component('explore',{
   created: function(){
     let self = this
     fetch('/api/posts',{
+      method: 'GET',
       headers:{
         'Authorization' : 'Bearer '+ sessionStorage.getItem('jwt_token')
       }
@@ -375,44 +385,228 @@ const ViewUser = Vue.component('viewuser',{
   template:`
 
   <div class="main-container flex-column">
-    <div class="profile-conatiner">
-      <img src="# alt=""></img>
+    <div class="profile-conatiner box-shadow border-gray">
+      <div class="profile-photo">
+        <img v-bind:src="user.profile_photo" alt=""></img>
+      </div>
 
       <div class="profile-info">
-        <div><h4>Name</h4></div>
+        <div><h4>{{ user.firstname }} {{ user.lastname }}</h4></div>
 
-        <div><p>Location</p></br><p>Date</p></div>
+        <div>
+          <p>{{ user.location }} </br>Member since {{ user.joined }}</p>
+        </div>
 
-        <div>Bio</div>
+        <div>{{ user.biography }}</div>
 
       </div>
 
       <div class="follow-container">
-        <div class="flex-row">
+        <div class="flex-row justify-space-around">
           <div class="flex-column">
-            <div><h4>6</h4></div>
+            <div class="text-align-center"><h4>{{ posts.length }}</h4></div>
             <div><p>Posts</p></div>
           </div>
 
           <div class="flex-column">
-            <div><h4>10</h4></div>
+            <div class="text-align-center" :key= "followers"><h4>{{ followers }}</h4></div>
             <div><p>Followers</p></div>
           </div>
         </div>
 
-        <button class="btn btn-primary" type="button" value="Follow"></button>
+        <template v-if="user.isFollowing == false">
+          <button v-on:click="follow" class="btn btn-primary" type="button" value="Follow">Follow</button>
+        </template>
+
+        <template v-else>
+          <button v-on:click="follow" class="btn btn-success" type="button" value="Follow">Following</button>
+        </template>
 
       </div>
     </div>
 
     <div class="photos-container">
+
+      <div v-for="post in posts" class="profile-post-photos">
+        <img v-bind:src="post.photo" alt="post image"></img>
+      </div>
+
     </div>
 
   </div>
 
   `,
+  watch: {
+    $route(to,from){
+      if(to.name == 'ViewUser' && from.name == 'ViewUser'){
+        this.loadUser();
+      }
+    }
+  },
   data: function (){
-    return {}
+    return {
+      id: 0,
+      posts:[],
+      user: {},
+      followers:0
+    }
+  },
+  methods:{
+    loadUser: function(){
+      let self = this
+      self.id = this.$route.params.user_id;
+
+      //Get user posts
+      fetch('/api/users/'+self.id+'/posts',{
+        method: 'GET',
+        headers:{
+          'Authorization': 'Bearer '+ sessionStorage.getItem('jwt_token'),
+
+        }
+      })
+      .then(function(response){
+        return response.json();
+      })
+      .then(function(jsonResponse){
+        console.log(jsonResponse);
+        if("posts" in jsonResponse){
+          self.posts = jsonResponse.posts
+        }
+        //Write else CONDITION!!!
+      })
+      .catch(function(error){
+        console.log(error);
+      });
+
+      //Get user details
+      fetch('/api/users/'+self.id,{
+        method: 'GET',
+        headers:{
+          'Authorization': 'Bearer '+ sessionStorage.getItem('jwt_token'),
+        }
+      })
+      .then(function(response){
+        return response.json();
+      })
+      .then(function(jsonResponse){
+        console.log(jsonResponse);
+        if("user" in jsonResponse){
+          self.user = jsonResponse.user;
+        }
+        //Write else!!!!!
+      })
+      .catch(function(error){
+        console.log(error);
+      });
+
+      //Get followers
+      fetch('/api/users/'+self.id+'/follow',{
+        method: 'GET',
+        headers:{
+          'Authorization': 'Bearer '+sessionStorage.getItem('jwt_token')
+        }
+      })
+      .then(function(response){
+        return response.json();
+      })
+      .then(function(jsonResponse){
+        console.log(jsonResponse);
+        self.followers = jsonResponse.followers
+      })
+      .catch(function(error){
+        console.log(error);
+      });
+    },
+    follow: function(){
+      let self = this;
+      fetch('/api/users/'+self.id+'/follow',{
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer '+ sessionStorage.getItem('jwt_token'),
+          'X-CSRFToken': token
+        }
+      })
+      .then(function(response){
+        console.log(response);
+        return response.json();
+      })
+      .then(function(jsonResponse){
+        console.log(jsonResponse);
+        if("message" in jsonResponse){
+          self.followers = self.followers + 1;
+          self.user.isFollowing = true
+        }
+      })
+      .catch(function(error){
+        console.log(error);
+      });
+      return self.followers
+    }
+  },
+  created: function(){
+    let self = this
+    self.id = this.$route.params.user_id;
+
+    //Get user posts
+    fetch('/api/users/'+self.id+'/posts',{
+      method: 'GET',
+      headers:{
+        'Authorization': 'Bearer '+ sessionStorage.getItem('jwt_token'),
+
+      }
+    })
+    .then(function(response){
+      return response.json();
+    })
+    .then(function(jsonResponse){
+      console.log(jsonResponse);
+      if("posts" in jsonResponse){
+        self.posts = jsonResponse.posts
+      }
+      //Write else CONDITION!!!
+    })
+    .catch(function(error){
+      console.log(error);
+    });
+
+    //Get user details
+    fetch('/api/users/'+self.id,{
+      method: 'GET',
+      headers:{
+        'Authorization': 'Bearer '+ sessionStorage.getItem('jwt_token'),
+      }
+    })
+    .then(function(response){
+      return response.json();
+    })
+    .then(function(jsonResponse){
+      console.log(jsonResponse);
+      if("user" in jsonResponse){
+        self.user = jsonResponse.user;
+      }
+      //Write else!!!!!
+    })
+    .catch(function(error){
+      console.log(error);
+    });
+
+    //Get followers
+    fetch('/api/users/'+self.id+'/follow',{
+      method: 'GET',
+      headers:{
+        'Authorization': 'Bearer '+sessionStorage.getItem('jwt_token')
+      }
+    })
+    .then(function(response){
+      return response.json();
+    })
+    .then(function(jsonResponse){
+      console.log(jsonResponse);
+      self.followers = jsonResponse.followers
+    })
+    .catch(function(error){
+      console.log(error);
+    });
   }
 });
 
@@ -499,7 +693,7 @@ const router = new VueRouter({
       { path: '/login', component: Login },
       { path: '/logout', component: Logout },
       { path: '/explore', component: Explore },
-      { path: '/users/{user_id}', component: ViewUser },
+      { path: '/users/:user_id', name: 'ViewUser', component: ViewUser, props:true },
       { path: '/posts/new', component: Post }
   ]
 });
