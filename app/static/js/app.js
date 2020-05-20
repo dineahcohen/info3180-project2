@@ -1,4 +1,5 @@
 /* Add your Application JavaScript */
+window.Bus = new  Vue();
 
 Vue.component('app-header',{
   template:`
@@ -167,14 +168,75 @@ const Register = Vue.component('register',{
       })
       .then(function(jsonResponse){
         console.log(jsonResponse);
+        Bus.$emit('flash-message', jsonResponse);
+        if("message" in jsonResponse){
+          router.push('/')
+        }
       })
       .catch(function(error){
         console.log(error);
       });
-    },
+    }
 
 
   }
+});
+
+const FlashMessage = Vue.component('flash-messages',{
+  template:`
+      <div class="fixed top-0 right-0 m-6">
+        <Transition name="slide-fade">
+          <div v-if="message.text" :class="message.type">
+            <div class="flex justify-center">
+              {{ message.text }}
+            </div>
+          </div>
+        </Transition>
+      </div>
+  `,
+  data: function(){
+    return{
+      message: {
+        text: null,
+        type: null
+      }
+    };
+  },
+
+
+  mounted(){
+    let self = this;
+    let timer;
+    Bus.$on('flash-message', (jsonResponse) => {
+      clearTimeout(timer);
+
+      if("message" in jsonResponse){
+        self.message.text = jsonResponse.message;
+        self.message.type = 'alert alert-success';
+      }
+      else if ("error" in jsonResponse) {
+        self.message.text = jsonResponse.error;
+        self.message.type = 'alert alert-danger';
+      }
+      else if ("code" in jsonResponse){
+        self.message.text = "You must be logged in to access this page";
+        self.message.type = 'alert alert-danger';
+        console.log(jsonResponse);
+      }
+      else {
+        self.message.text = "Invalid response from server!";
+        self.message.type = 'alert alert-danger';
+        console.log(jsonResponse);
+      }
+
+      timer = setTimeout(() => {
+        self.message.text = null;
+        self.message.type = null;
+      }, 5000);
+
+    })
+  }
+
 });
 
 const Login = Vue.component('login',{
@@ -240,6 +302,7 @@ const Login = Vue.component('login',{
         })
         .then(function(jsonResponse){
           console.log(jsonResponse);
+          Bus.$emit('flash-message', jsonResponse);
           if("token" in jsonResponse){
             let jwt_token = jsonResponse.token;
             let user_id = jsonResponse.user_id;
@@ -276,6 +339,7 @@ const Logout = Vue.component('logout',{
       })
       .then(function(jsonResponse){
         console.log(jsonResponse);
+
       })
       .catch(function(error){
         console.log(error);
@@ -293,8 +357,15 @@ const Logout = Vue.component('logout',{
     })
     .then(function(jsonResponse){
       console.log(jsonResponse);
-      sessionStorage.clear();
-      router.push('/login');
+      if("message" in jsonResponse){
+        Bus.$emit('flash-message', jsonResponse);
+        sessionStorage.clear();
+        router.push('/login');
+      }
+      else{
+        Bus.$emit('flash-message', jsonResponse);
+        router.push('/')
+      }
     })
     .catch(function(error){
       console.log(error);
@@ -369,9 +440,16 @@ const Explore = Vue.component('explore',{
       return response.json();
     })
     .then(function(jsonResponse){
-      console.log(jsonResponse.posts[0]);
+      console.log(jsonResponse.posts);
       if("posts" in jsonResponse){
         self.posts = jsonResponse.posts;
+      }
+      else if("code" in jsonResponse){
+        Bus.$emit('flash-message', jsonResponse);
+        router.push('/');
+      }
+      else{
+        Bus.$emit('flash-message', jsonResponse);
       }
     })
     .catch(function(error){
@@ -418,7 +496,7 @@ const ViewUser = Vue.component('viewuser',{
           <button v-on:click="follow" class="btn btn-primary" type="button" value="Follow">Follow</button>
         </template>
 
-        <template v-else>
+        <template v-if="user.isFollowing == true">
           <button v-on:click="follow" class="btn btn-success" type="button" value="Follow">Following</button>
         </template>
 
@@ -472,7 +550,9 @@ const ViewUser = Vue.component('viewuser',{
         if("posts" in jsonResponse){
           self.posts = jsonResponse.posts
         }
-        //Write else CONDITION!!!
+        else{
+          Bus.$emit('flash-message', jsonResponse);
+        }
       })
       .catch(function(error){
         console.log(error);
@@ -493,7 +573,13 @@ const ViewUser = Vue.component('viewuser',{
         if("user" in jsonResponse){
           self.user = jsonResponse.user;
         }
-        //Write else!!!!!
+        else if("code" in jsonResponse){
+          Bus.$emit('flash-message', jsonResponse);
+          router.push('/');
+        }
+        else {
+          Bus.$emit('flash-message', jsonResponse);
+        }
       })
       .catch(function(error){
         console.log(error);
@@ -511,7 +597,12 @@ const ViewUser = Vue.component('viewuser',{
       })
       .then(function(jsonResponse){
         console.log(jsonResponse);
-        self.followers = jsonResponse.followers
+        if("followers" in jsonResponse){
+          self.followers = jsonResponse.followers
+        }
+        else {
+          Bus.$emit('flash-message', jsonResponse);
+        }
       })
       .catch(function(error){
         console.log(error);
@@ -563,7 +654,13 @@ const ViewUser = Vue.component('viewuser',{
       if("posts" in jsonResponse){
         self.posts = jsonResponse.posts
       }
-      //Write else CONDITION!!!
+      else if("code" in jsonResponse){
+        Bus.$emit('flash-message', jsonResponse);
+        router.push('/');
+      }
+      else{
+        Bus.$emit('flash-message', jsonResponse);
+      }
     })
     .catch(function(error){
       console.log(error);
@@ -584,7 +681,9 @@ const ViewUser = Vue.component('viewuser',{
       if("user" in jsonResponse){
         self.user = jsonResponse.user;
       }
-      //Write else!!!!!
+      else{
+        Bus.$emit('flash-message', jsonResponse);
+      }
     })
     .catch(function(error){
       console.log(error);
@@ -672,6 +771,7 @@ const Post = Vue.component('post',{
       })
       .then(function(jsonResponse){
         console.log(jsonResponse);
+        Bus.$emit('flash-message', jsonResponse);
         if("message" in jsonResponse){
           router.push('/explore')
         }
